@@ -11,7 +11,7 @@
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.geometry.Insets?>
-<VBox fx:id="rootNode" alignment="CENTER" prefHeight="500.0" prefWidth="400.0"
+<VBox fx:id="rootNode" alignment="CENTER" prefHeight="800.0" prefWidth="500.0"
       xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.172-ea"
       fx:controller="src.main.geekCloud.client.MainController">
 
@@ -33,7 +33,7 @@
         </HBox>
 
     <HBox spacing="5">
-        <Button fx:id="viewBtnAction" maxWidth="Infinity" focusTraversable="false" text="F3 Просмотр" HBox.hgrow="ALWAYS" onAction="#viewBtnAction"/>
+        <Button fx:id="viewBtnAction" maxWidth="Infinity" focusTraversable="false" text="F3 Просмотр" HBox.hgrow="ALWAYS" onAction="#viewBtnAction" />
         <Button fx:id="editBtnAction" maxWidth="Infinity" focusTraversable="false" text="F4 Правка" HBox.hgrow="ALWAYS" onAction="#editBtnAction"/>
         <Button fx:id="copyBtnAction" maxWidth="Infinity" focusTraversable="false" text="F5 Копирование" HBox.hgrow="ALWAYS" onAction="#copyBtnAction"/>
         <Button fx:id="moveBtnAction" maxWidth="Infinity" focusTraversable="false" text="F6 Перемещение" HBox.hgrow="ALWAYS" onAction="#moveBtnAction"/>

@@ -86,7 +86,6 @@ public class MainController implements Initializable {
         // Проверяем фокус на локальном хранилище
         if(fileServer == null){
             try {
-                System.out.println(fileLocal);
                 Network.sendMsg(new FileMessage(Paths.get("client_storage/" + fileLocal)));
             } catch (IOException e) {
                 e.printStackTrace();
@@ -119,7 +118,33 @@ public class MainController implements Initializable {
             Network.sendMsg(new FileDelete(fileServer));
         }
     }
+    public void moveBtnAction(ActionEvent actionEvent) {
+        String fileLocal = getSelected(filesList);
+        String fileServer = getSelected(filesListServer);
+        if(fileLocal == null && fileServer == null){
+            Alert alert = new Alert(Alert.AlertType.ERROR, "Ни один файл не был выбран", ButtonType.OK);
+            alert.showAndWait();
+            return;
+        }
+        // Проверяем фокус на локальном хранилище
+        if(fileServer == null){
+            try {
+                Network.sendMsg(new FileMessage(Paths.get("client_storage/" + fileLocal)));
+                Files.delete(Paths.get("client_storage/" + fileLocal));
+                refreshLocalFilesList();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            System.out.println("Отправил файл и удалил локально.");
+        }
+        // Проверяем фокус на сервере
+        if(fileLocal == null) {
+            Network.sendMsg(new FileRequest(fileServer));
+            Network.sendMsg(new FileDelete(fileServer));
+            System.out.println("Получил файл и удалил на облаке.");
+            }
 
+        }
     public void refreshLocalFilesList() {
         if (Platform.isFxApplicationThread()) {
             try {
@@ -160,6 +185,17 @@ public class MainController implements Initializable {
         }
     }
 
+
+    public void newFolderAction(ActionEvent actionEvent) {
+
+    }
+
+    public void editBtnAction(ActionEvent actionEvent) {
+    }
+
+    public void viewBtnAction(ActionEvent actionEvent) {
+    }
+
     public void btnExitAction(ActionEvent actionEvent) {
         Alert alertBatal = new Alert(Alert.AlertType.CONFIRMATION);
         alertBatal.setTitle("CloudApp");
@@ -170,19 +206,5 @@ public class MainController implements Initializable {
             System.exit(1);
         }
     }
-    
-
-    public void newFolderAction(ActionEvent actionEvent) {
-    }
-
-    public void moveBtnAction(ActionEvent actionEvent) {
-    }
-
-    public void editBtnAction(ActionEvent actionEvent) {
-    }
-
-    public void viewBtnAction(ActionEvent actionEvent) {
-    }
-
 
 }

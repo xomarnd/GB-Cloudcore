@@ -65,7 +65,7 @@ public class AuthController implements Initializable {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/main.fxml"));
             Parent root = loader.load();
             stage.setTitle("Cloud Application");
-            stage.setScene(new Scene(root, 400, 600));
+            stage.setScene(new Scene(root, 800, 600));
         } catch (IOException e) {
             e.printStackTrace();
         }

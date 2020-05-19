@@ -1,9 +1,6 @@
 package src.main.geekCloud.server;
 
-import src.main.geekCloud.common.FileDelete;
-import src.main.geekCloud.common.FileListUpdate;
-import src.main.geekCloud.common.FileMessage;
-import src.main.geekCloud.common.FileRequest;
+import src.main.geekCloud.common.*;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
@@ -55,6 +52,27 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
                     System.out.println("Получил");
                 }
             }
+
+            if (msg instanceof FileMove) {
+                FileMove message = (FileMove) msg;
+                new Thread(() -> {
+                    try {
+
+                        if (Files.exists(Paths.get("server_storage/" + userName + "/" + message.getFilename()))) {
+                            FileMessage fm = new FileMessage(Paths.get("server_storage/" + userName + "/" + message.getFilename()));
+                            ctx.writeAndFlush(fm);
+                            System.out.println("Отправил");
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }).start();
+                Files.delete(Paths.get("server_storage/" + userName + "/" + message.getFilename()));
+                FileListUpdate flu = new FileListUpdate(getFileServerList(userName));
+                ctx.writeAndFlush(flu);
+                System.out.println("Файл " + message.getFilename() + " удален");
+            }
+
             if (msg instanceof FileDelete) {
                 FileDelete fd = (FileDelete) msg;
                 Files.delete(Paths.get("server_storage/" + userName + "/" + fd.getFilename()));
