@@ -11,6 +11,9 @@
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TableView?>
 <VBox fx:id="rootNode" alignment="CENTER" prefHeight="800.0" prefWidth="500.0"
       xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.172-ea"
       fx:controller="src.main.geekCloud.client.MainController">
@@ -23,25 +26,35 @@
             </MenuBar>
         </AnchorPane>
 
+
         <HBox VBox.vgrow="ALWAYS">
             <VBox HBox.hgrow="ALWAYS">
-                <ListView fx:id="filesList" VBox.vgrow="ALWAYS"/>
+                <HBox  HBox.hgrow="ALWAYS">
+                    <ComboBox fx:id="disksBox" onAction="#selectDiskAction"/>
+                    <TextField fx:id="clientFiles"  editable="false" HBox.hgrow="ALWAYS" text="Client"/>
+                    <Button text="Вверх"  onAction="#localBtnPathUpAction"/>
+                </HBox>
+                <ListView fx:id="filesList" onMouseClicked="#clientListClicked" VBox.vgrow="ALWAYS"/>
             </VBox>
             <VBox HBox.hgrow="ALWAYS">
-                <ListView fx:id="filesListServer" VBox.vgrow="ALWAYS"/>
+                <HBox  HBox.hgrow="ALWAYS">
+                    <TextField fx:id="serverFiles" editable="false" text="Cloud" HBox.hgrow="ALWAYS"/>
+                </HBox>
+                <ListView fx:id="filesListServer" onMouseClicked="#serverListClicked" VBox.vgrow="ALWAYS"/>
             </VBox>
         </HBox>
 
-    <HBox spacing="5">
-        <Button fx:id="viewBtnAction" maxWidth="Infinity" focusTraversable="false" text="F3 Просмотр" HBox.hgrow="ALWAYS" onAction="#viewBtnAction" />
-        <Button fx:id="editBtnAction" maxWidth="Infinity" focusTraversable="false" text="F4 Правка" HBox.hgrow="ALWAYS" onAction="#editBtnAction"/>
-        <Button fx:id="copyBtnAction" maxWidth="Infinity" focusTraversable="false" text="F5 Копирование" HBox.hgrow="ALWAYS" onAction="#copyBtnAction"/>
-        <Button fx:id="moveBtnAction" maxWidth="Infinity" focusTraversable="false" text="F6 Перемещение" HBox.hgrow="ALWAYS" onAction="#moveBtnAction"/>
-        <Button fx:id="newFolderAction" maxWidth="Infinity" focusTraversable="false" text="F7 Каталог" HBox.hgrow="ALWAYS" onAction="#newFolderAction"/>
-        <Button fx:id="delBtnAction" maxWidth="Infinity" focusTraversable="false" text="F8 Удаление" HBox.hgrow="ALWAYS" onAction="#delBtnAction"/>
-        <Button fx:id="btnExitAction" maxWidth="Infinity" focusTraversable="false" text="ALT+F4 Выход" HBox.hgrow="ALWAYS" onAction="#btnExitAction"/>
-        <padding>
-            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
-        </padding>
-    </HBox>
+        <HBox spacing="5">
+            <Button fx:id="viewBtnAction" maxWidth="Infinity" focusTraversable="false" text="F3 Просмотр" HBox.hgrow="ALWAYS" onAction="#viewBtnAction" />
+            <Button fx:id="editBtnAction" maxWidth="Infinity" focusTraversable="false" text="F4 Правка" HBox.hgrow="ALWAYS" onAction="#editBtnAction"/>
+            <Button fx:id="copyBtnAction" maxWidth="Infinity" focusTraversable="false" text="F5 Копирование" HBox.hgrow="ALWAYS" onAction="#copyBtnAction"/>
+            <Button fx:id="moveBtnAction" maxWidth="Infinity" focusTraversable="false" text="F6 Перемещение" HBox.hgrow="ALWAYS" onAction="#moveBtnAction"/>
+            <Button fx:id="newFolderAction" maxWidth="Infinity" focusTraversable="false" text="F7 Каталог" HBox.hgrow="ALWAYS" onAction="#newFolderAction"/>
+            <Button fx:id="delBtnAction" maxWidth="Infinity" focusTraversable="false" text="F8 Удаление" HBox.hgrow="ALWAYS" onAction="#delBtnAction"/>
+            <Button fx:id="renameBtnAction" maxWidth="Infinity" focusTraversable="false" text="F8 Удаление" HBox.hgrow="ALWAYS" onAction="#renameBtnAction"/>
+            <Button fx:id="btnExitAction" maxWidth="Infinity" focusTraversable="false" text="ALT+F4 Выход" HBox.hgrow="ALWAYS" onAction="#btnExitAction"/>
+            <padding>
+                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+            </padding>
+        </HBox>
     </VBox>

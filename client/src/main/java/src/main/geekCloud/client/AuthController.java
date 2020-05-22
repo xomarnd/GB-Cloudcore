@@ -47,11 +47,9 @@ public class AuthController implements Initializable {
             try {
                 AbstractMessage am = Network.readObject();
                 if (am instanceof AuthMessageOk) {
-                    Platform.runLater(() -> fxMainWindow());
+                    Platform.runLater(this::fxMainWindow);
                 }
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
+            } catch (ClassNotFoundException | IOException e) {
                 e.printStackTrace();
             }
         });

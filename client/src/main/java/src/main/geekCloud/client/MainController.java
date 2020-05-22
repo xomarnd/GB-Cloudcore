@@ -1,40 +1,78 @@
 package src.main.geekCloud.client;
 
+import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
+import javafx.util.Callback;
 import src.main.geekCloud.common.*;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.ListView;
-import src.main.geekCloud.common.*;
+
 
 import java.io.IOException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.*;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
-import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class MainController implements Initializable {
 
-    private String focusFileName;
+    public TextField pathField;
 
     @FXML
-    ListView<String> filesList;
+    ListView<FileInfo> filesList;
 
     @FXML
     ListView<String> filesListServer;
+
+    @FXML
+    private TextField clientFiles;
+
+    @FXML
+    ComboBox<String> disksBox;
+
+    private Path root;
+
+    private FileInfo fileLocal = null;
+    private String fileServer = null;
+    private Path selectSendFile;
 
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         Thread t = new Thread(() -> {
+
+            filesList.setCellFactory(new Callback<ListView<FileInfo>, ListCell<FileInfo>>() {
+                @Override
+                public ListCell<FileInfo> call(ListView<FileInfo> param) {
+                    return new ListCell<FileInfo>() {
+                        @Override
+                        protected void updateItem(FileInfo item, boolean empty) {
+                            super.updateItem(item, empty);
+                            if (item == null || empty) {
+                                setText(null);
+                                setStyle("");
+                            }else {
+                                String formattedFileName = String.format("%-30s", item.getFilename());
+                                String formattedFileSize = String.format("%,d bytes", item.getSize());
+                                if(item.getSize() == -1L) {
+                                    formattedFileSize = String.format("%s", "[ DIR ]");
+                                }
+                                if(item.getSize() == -2L) {
+                                    formattedFileSize = String.format("");
+                                }
+                                String text = String.format("%s %-20s", formattedFileName, formattedFileSize);
+                                setText(text);
+                            }
+                        }
+                    };
+                }
+            });
+
             try {
                 while (true) {
                     AbstractMessage am = Network.readObject();
@@ -57,11 +95,51 @@ public class MainController implements Initializable {
                 System.out.println("Сеть отключена");
                 Network.stop();
             }
+
+
         });
         t.setDaemon(true);
         t.start();
-        refreshLocalFilesList();
+        Path path = Paths.get("client_storage");
+        goToPath(path);
         refreshLocalFilesListServer();
+        disksBox.getItems().clear();
+        disksBox.getItems().add(path.toString());
+        for (Path p : FileSystems.getDefault().getRootDirectories()) {
+            System.out.println(p);
+            disksBox.getItems().add(p.toString());
+        }
+        disksBox.getSelectionModel().select(0);
+    }
+
+    public void goToPath(Path path) {
+        root = path;
+        clientFiles.setText(root.toAbsolutePath().toString());
+        filesList.getItems().clear();
+        filesList.getItems().add(new FileInfo(FileInfo.UP_TOKEN, -2L));
+        filesList.getItems().addAll(scanFiles(path));
+
+        filesList.getItems().sort(new Comparator<FileInfo>() {
+            @Override
+            public int compare(FileInfo o1, FileInfo o2) {
+                if (o1.getFilename().equals(FileInfo.UP_TOKEN)) {
+                    return -1;
+                }
+                if ((int) Math.signum(o1.getSize()) == (int) Math.signum(o2.getSize())) {
+                    return o1.getFilename().compareTo(o2.getFilename());
+                }
+                return Long.compare(o1.getSize(),o2.getSize());
+            }
+        });
+    }
+
+    public List<FileInfo> scanFiles(Path root) {
+        try {
+            return Files.list(root).map(FileInfo::new).collect(Collectors.toList());
+
+        } catch (IOException e) {
+            throw new RuntimeException("Files scan exception: " + root);
+        }
     }
 
     public void refreshLocalFilesListServer() {
@@ -75,9 +153,7 @@ public class MainController implements Initializable {
         return selectFile;
     }
 
-    public void copyBtnAction(ActionEvent actionEvent) {
-        String fileLocal = getSelected(filesList);
-        String fileServer = getSelected(filesListServer);
+    public void copyBtnAction(ActionEvent actionEvent) throws IOException {
         if(fileLocal == null && fileServer == null){
             Alert alert = new Alert(Alert.AlertType.ERROR, "Ни один файл не был выбран", ButtonType.OK);
             alert.showAndWait();
@@ -86,8 +162,9 @@ public class MainController implements Initializable {
         // Проверяем фокус на локальном хранилище
         if(fileServer == null){
             try {
-                Network.sendMsg(new FileMessage(Paths.get("client_storage/" + fileLocal)));
+                Network.sendMsg(new FileMessage(Paths.get("client_storage/" + fileLocal.getFilename())));
             } catch (IOException e) {
+                System.out.println("kek");
                 e.printStackTrace();
             }
         }
@@ -97,8 +174,6 @@ public class MainController implements Initializable {
         }
     }
     public void delBtnAction(ActionEvent actionEvent) {
-        String fileLocal = getSelected(filesList);
-        String fileServer = getSelected(filesListServer);
         if(fileLocal == null && fileServer == null){
             Alert alert = new Alert(Alert.AlertType.ERROR, "Ни один файл не был выбран", ButtonType.OK);
             alert.showAndWait();
@@ -107,7 +182,7 @@ public class MainController implements Initializable {
         // Проверяем фокус на локальном хранилище
         if(fileServer == null){
             try {
-                Files.delete(Paths.get("client_storage/" + fileLocal));
+                Files.delete(Paths.get("client_storage/" + fileLocal.getFilename()));
                 refreshLocalFilesList();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -115,12 +190,11 @@ public class MainController implements Initializable {
         }
         // Проверяем фокус на сервере
         if(fileLocal == null) {
+            System.out.println("kek");
             Network.sendMsg(new FileDelete(fileServer));
         }
     }
     public void moveBtnAction(ActionEvent actionEvent) {
-        String fileLocal = getSelected(filesList);
-        String fileServer = getSelected(filesListServer);
         if(fileLocal == null && fileServer == null){
             Alert alert = new Alert(Alert.AlertType.ERROR, "Ни один файл не был выбран", ButtonType.OK);
             alert.showAndWait();
@@ -129,8 +203,8 @@ public class MainController implements Initializable {
         // Проверяем фокус на локальном хранилище
         if(fileServer == null){
             try {
-                Network.sendMsg(new FileMessage(Paths.get("client_storage/" + fileLocal)));
-                Files.delete(Paths.get("client_storage/" + fileLocal));
+                Network.sendMsg(new FileMessage(Paths.get("client_storage/" + fileLocal.getFilename())));
+                Files.delete(Paths.get("client_storage/" + fileLocal.getFilename()));
                 refreshLocalFilesList();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -146,44 +220,49 @@ public class MainController implements Initializable {
 
         }
     public void refreshLocalFilesList() {
-        if (Platform.isFxApplicationThread()) {
-            try {
-                filesList.getItems().clear();
-                Files.list(Paths.get("client_storage")).map(new Function<Path, String>() {
-                    @Override
-                    public String apply(Path p) {
-                        return p.getFileName().toString();
-                    }
-                }).forEach(o -> {
-                    filesList.getItems().add(o);
-                });
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } else {
-            Platform.runLater(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        filesList.getItems().clear();
-                        Files.list(Paths.get("client_storage")).map(new Function<Path, String>() {
-                            @Override
-                            public String apply(Path p) {
-                                return p.getFileName().toString();
-                            }
-                        }).forEach(new Consumer<String>() {
-                            @Override
-                            public void accept(String o) {
-                                filesList.getItems().add(o);
-                            }
-                        });
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-        }
+        goToPath(root);
+        refreshLocalFilesListServer();
     }
+
+//    public void refreshLocalFilesList() {
+//        if (Platform.isFxApplicationThread()) {
+//            try {
+//                filesList.getItems().clear();
+//                Files.list(Paths.get("client_storage")).map(new Function<Path, String>() {
+//                    @Override
+//                    public String apply(Path p) {
+//                        return p.getFileName().toString();
+//                    }
+//                }).forEach(o -> {
+//                    filesList.getItems().add(o);
+//                });
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        } else {
+//            Platform.runLater(new Runnable() {
+//                @Override
+//                public void run() {
+//                    try {
+//                        filesList.getItems().clear();
+//                        Files.list(Paths.get("client_storage")).map(new Function<Path, String>() {
+//                            @Override
+//                            public String apply(Path p) {
+//                                return p.getFileName().toString();
+//                            }
+//                        }).forEach(new Consumer<String>() {
+//                            @Override
+//                            public void accept(String o) {
+//                                filesList.getItems().add(o);
+//                            }
+//                        });
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            });
+//        }
+//    }
 
 
     public void newFolderAction(ActionEvent actionEvent) {
@@ -203,8 +282,56 @@ public class MainController implements Initializable {
         alertBatal.setContentText("Вы уверины что хотите выйти из программы?");
         Optional<ButtonType> exit = alertBatal.showAndWait();
         if(exit.get() == ButtonType.OK){
+            Network.stop();
             System.exit(1);
         }
     }
+    //TODO фикс, возврат домой после ухода с директории
+    public void selectDiskAction(ActionEvent actionEvent) {
+        ComboBox<String> element = (ComboBox<String>) actionEvent.getSource();
+        goToPath(Paths.get(element.getSelectionModel().getSelectedItem()));
+        refreshLocalFilesList();
+    }
 
+    public void localBtnPathUpAction(ActionEvent actionEvent) {
+        Path pathTo = root.toAbsolutePath().getParent();
+        goToPath(pathTo);
+    }
+    //TODO rename
+    public void renameBtnAction(ActionEvent actionEvent) {
+    }
+
+    public void clientListClicked(MouseEvent mouseEvent) {
+        fileLocal = filesList.getSelectionModel().getSelectedItem();
+        fileServer = null;
+        if (mouseEvent.getClickCount() == 2) {
+            if (fileLocal != null) {
+                if (fileLocal.isDirectory()) { //Если fileInfo - директория
+                    Path pathTo = root.resolve(fileLocal.getFilename());
+                    goToPath(pathTo);
+                }
+                if (fileLocal.isUpElement()) {
+                    Path pathTo = root.toAbsolutePath().getParent();
+                    goToPath(pathTo);
+                }
+            }
+        }
+        //
+        if (mouseEvent.getClickCount() == 1) {
+            if (fileLocal != null) {
+                if (!fileLocal.isDirectory() && !fileLocal.getFilename().equals(FileInfo.UP_TOKEN)) {
+                    selectSendFile = root.resolve(fileLocal.getFilename());
+                    System.out.println("Выбрали файл на клиенте: " + fileLocal + " ");
+                }
+            }
+        }
+        System.out.println("Выбираем локальный файл:" + fileLocal);
+    }
+
+    public void serverListClicked(MouseEvent mouseEvent) {
+        fileLocal = null;
+        fileServer = getSelected(filesListServer);
+        System.out.println("Выбираем \"удаленный\" файл: " + fileServer);
+
+    }
 }

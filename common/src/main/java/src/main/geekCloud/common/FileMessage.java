@@ -8,6 +8,7 @@ public class FileMessage extends AbstractMessage {
     private String filename;
     private byte[] data;
     private String name;
+
     private boolean isDirectory;
     private boolean isEmpty;
 
