@@ -58,7 +58,7 @@ public class MainController implements Initializable {
                                 setStyle("");
                             }else {
                                 String formattedFileName = String.format("%-30s", item.getFilename());
-                                String formattedFileSize = String.format("%,d bytes", item.getSize());
+                                String formattedFileSize = String.format(getSize(item.getSize()));
                                 if(item.getSize() == -1L) {
                                     formattedFileSize = String.format("%s", "[ DIR ]");
                                 }
@@ -164,7 +164,6 @@ public class MainController implements Initializable {
             try {
                 Network.sendMsg(new FileMessage(Paths.get("client_storage/" + fileLocal.getFilename())));
             } catch (IOException e) {
-                System.out.println("kek");
                 e.printStackTrace();
             }
         }
@@ -190,7 +189,6 @@ public class MainController implements Initializable {
         }
         // Проверяем фокус на сервере
         if(fileLocal == null) {
-            System.out.println("kek");
             Network.sendMsg(new FileDelete(fileServer));
         }
     }
@@ -224,47 +222,6 @@ public class MainController implements Initializable {
         refreshLocalFilesListServer();
     }
 
-//    public void refreshLocalFilesList() {
-//        if (Platform.isFxApplicationThread()) {
-//            try {
-//                filesList.getItems().clear();
-//                Files.list(Paths.get("client_storage")).map(new Function<Path, String>() {
-//                    @Override
-//                    public String apply(Path p) {
-//                        return p.getFileName().toString();
-//                    }
-//                }).forEach(o -> {
-//                    filesList.getItems().add(o);
-//                });
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        } else {
-//            Platform.runLater(new Runnable() {
-//                @Override
-//                public void run() {
-//                    try {
-//                        filesList.getItems().clear();
-//                        Files.list(Paths.get("client_storage")).map(new Function<Path, String>() {
-//                            @Override
-//                            public String apply(Path p) {
-//                                return p.getFileName().toString();
-//                            }
-//                        }).forEach(new Consumer<String>() {
-//                            @Override
-//                            public void accept(String o) {
-//                                filesList.getItems().add(o);
-//                            }
-//                        });
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            });
-//        }
-//    }
-
-
     public void newFolderAction(ActionEvent actionEvent) {
 
     }
@@ -297,6 +254,7 @@ public class MainController implements Initializable {
         Path pathTo = root.toAbsolutePath().getParent();
         goToPath(pathTo);
     }
+
     //TODO rename
     public void renameBtnAction(ActionEvent actionEvent) {
     }
@@ -333,5 +291,20 @@ public class MainController implements Initializable {
         fileServer = getSelected(filesListServer);
         System.out.println("Выбираем \"удаленный\" файл: " + fileServer);
 
+    }
+
+    public String getSize(long bytes) {
+        if(bytes < 1000){
+            return String.format ("%,d bytes", bytes);
+        }else if (bytes < 1000 * Math.pow(2, 10)) {
+            return String.format ("%,d KB", (long)(bytes / Math.pow(2, 10)));
+        }else if (bytes < 1000 * Math.pow(2, 20) ) {
+            return String.format ("%,d MB", (long)(bytes / Math.pow(2, 20)));
+        }else if (bytes < 1000 * Math.pow(2, 30) ) {
+            return String.format ("%,d GB", (long)(bytes / Math.pow(2, 30)));
+        }else if (bytes < 1000 * Math.pow(2, 40) ) {
+            return String.format ("%,d TB", (long)(bytes / Math.pow(2, 40)));
+        }
+        return "n/a";
     }
 }

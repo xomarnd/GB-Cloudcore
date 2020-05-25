@@ -16,6 +16,7 @@ public class Network {
     private static ObjectDecoderInputStream in;
     private static final int MAX_OBJ_SIZE = 100 * 1024 * 1024;
 
+
     public static void start() {
 
         try {
@@ -25,6 +26,7 @@ public class Network {
         } catch (IOException e) {
             e.printStackTrace();
             stop();
+
             Alert alertReconnect = new Alert(Alert.AlertType.CONFIRMATION);
             alertReconnect.setTitle("CloudApp");
             alertReconnect.setHeaderText("Нет соеденения с сервером.");

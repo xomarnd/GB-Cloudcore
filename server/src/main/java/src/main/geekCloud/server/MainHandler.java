@@ -26,7 +26,7 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
             if (msg == null) {
                 return;
             }
-
+//TODO single thread executor and stack
             if (msg instanceof FileRequest) {
                 new Thread(() -> {
                     try {
