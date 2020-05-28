@@ -1,13 +1,10 @@
 package src.main.geekCloud.client;
 
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
 import src.main.geekCloud.common.AbstractMessage;
 import io.netty.handler.codec.serialization.ObjectDecoderInputStream;
 import io.netty.handler.codec.serialization.ObjectEncoderOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.Optional;
 
 
 public class Network {
@@ -26,24 +23,7 @@ public class Network {
         } catch (IOException e) {
             e.printStackTrace();
             stop();
-
-            Alert alertReconnect = new Alert(Alert.AlertType.CONFIRMATION);
-            alertReconnect.setTitle("CloudApp");
-            alertReconnect.setHeaderText("Нет соеденения с сервером.");
-
-            alertReconnect.setContentText("Переподключится?");
-            ButtonType ok = new ButtonType("Reconnect");
-            ButtonType cancel = new ButtonType("Cancel");
-            alertReconnect.getButtonTypes().clear();
-
-            alertReconnect.getButtonTypes().addAll(ok, cancel);
-            Optional<ButtonType> reconnect = alertReconnect.showAndWait();
-
-            if(reconnect.get() == ok) {
-                start();
-            }else {
-                reconnect.get();
-            }
+            AlertController.alertNetworkController();
         }
     }
 
@@ -78,6 +58,7 @@ public class Network {
 
     public static AbstractMessage readObject() throws ClassNotFoundException, IOException {
         Object obj = in.readObject();
+
         return (AbstractMessage) obj;
     }
 

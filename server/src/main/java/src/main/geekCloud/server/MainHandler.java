@@ -26,7 +26,8 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
             if (msg == null) {
                 return;
             }
-//TODO single thread executor and stack
+
+            //TODO single thread executor and stack
             if (msg instanceof FileRequest) {
                 new Thread(() -> {
                     try {
@@ -80,6 +81,16 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
                 ctx.writeAndFlush(flu);
                 System.out.println("Файл " + fd.getFilename() + " удален");
             }
+            if (msg instanceof FileRename) {
+                FileRename fd = (FileRename) msg;
+                Files.move(Paths.get("server_storage/" + userName + "/" + fd.getFileName()),
+                        Paths.get("server_storage/" + userName + "/" + fd.getFileName()).resolveSibling(fd.getNewFileName()));
+
+                FileListUpdate flu = new FileListUpdate(getFileServerList(userName));
+                ctx.writeAndFlush(flu);
+                System.out.println("Файл " + fd.getFileName() + " удален");
+            }
+
             if (msg instanceof FileListUpdate) {
                 FileListUpdate flu = new FileListUpdate(getFileServerList(userName));
                 ctx.writeAndFlush(flu);
