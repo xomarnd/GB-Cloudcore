@@ -13,11 +13,13 @@ public class Network {
     private static ObjectDecoderInputStream in;
     private static final int MAX_OBJ_SIZE = 100 * 1024 * 1024;
 
+    private static String HOST = "localhost";
+    private static int PORT = 8189;
 
     public static void start() {
 
         try {
-            socket = new Socket("localhost", 8189);
+            socket = new Socket(HOST, PORT);
             out = new ObjectEncoderOutputStream(socket.getOutputStream());
             in = new ObjectDecoderInputStream(socket.getInputStream(), MAX_OBJ_SIZE);
         } catch (IOException e) {
@@ -59,6 +61,11 @@ public class Network {
     public static AbstractMessage readObject() throws ClassNotFoundException, IOException {
         Object obj = in.readObject();
         return (AbstractMessage) obj;
+    }
+
+    public void setClientParam(String host, int port) {
+        HOST = host;
+        PORT = port;
     }
 
 }

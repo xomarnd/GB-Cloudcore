@@ -1,10 +1,6 @@
 package src.main.geekCloud.client;
 
-import javafx.event.ActionEvent;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.TextInputDialog;
-
+import javafx.scene.control.*;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -64,5 +60,9 @@ public class AlertController {
     public static void smallAlert(String textAlert){
         Alert alert = new Alert(Alert.AlertType.ERROR, textAlert, ButtonType.OK);
         alert.showAndWait();
+    }
+
+    public static void inputConnectSettingDialog(){
+
     }
 }

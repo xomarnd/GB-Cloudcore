@@ -54,6 +54,22 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
                 }
             }
 
+            if (msg instanceof FileDelete) {
+                FileDelete fd = (FileDelete) msg;
+                Files.delete(Paths.get("server_storage/" + userName + "/" + fd.getFilename()));
+                FileListUpdate flu = new FileListUpdate(getFileServerList(userName));
+                ctx.writeAndFlush(flu);
+                System.out.println("Файл " + fd.getFilename() + " удален");
+            }
+            if (msg instanceof FileRename) {
+                FileRename fd = (FileRename) msg;
+                Files.move(Paths.get("server_storage/" + userName + "/" + fd.getFileName()),
+                        Paths.get("server_storage/" + userName + "/" + fd.getFileName()).resolveSibling(fd.getNewFileName()));
+
+                FileListUpdate flu = new FileListUpdate(getFileServerList(userName));
+                ctx.writeAndFlush(flu);
+                System.out.println("Файл " + fd.getFileName() + " удален");
+            }
             if (msg instanceof FileMove) {
                 FileMove message = (FileMove) msg;
                 new Thread(() -> {
@@ -72,23 +88,6 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
                 FileListUpdate flu = new FileListUpdate(getFileServerList(userName));
                 ctx.writeAndFlush(flu);
                 System.out.println("Файл " + message.getFilename() + " удален");
-            }
-
-            if (msg instanceof FileDelete) {
-                FileDelete fd = (FileDelete) msg;
-                Files.delete(Paths.get("server_storage/" + userName + "/" + fd.getFilename()));
-                FileListUpdate flu = new FileListUpdate(getFileServerList(userName));
-                ctx.writeAndFlush(flu);
-                System.out.println("Файл " + fd.getFilename() + " удален");
-            }
-            if (msg instanceof FileRename) {
-                FileRename fd = (FileRename) msg;
-                Files.move(Paths.get("server_storage/" + userName + "/" + fd.getFileName()),
-                        Paths.get("server_storage/" + userName + "/" + fd.getFileName()).resolveSibling(fd.getNewFileName()));
-
-                FileListUpdate flu = new FileListUpdate(getFileServerList(userName));
-                ctx.writeAndFlush(flu);
-                System.out.println("Файл " + fd.getFileName() + " удален");
             }
 
             if (msg instanceof FileListUpdate) {

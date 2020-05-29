@@ -372,4 +372,9 @@ public class MainController implements Initializable {
     public void btnExitAction(ActionEvent actionEvent) {
         AlertController.alertExitAction();
     }
+
+    public void disConnect(ActionEvent actionEvent) {
+        filesListServer.getItems().clear();
+        Network.stop();
+    }
 }
