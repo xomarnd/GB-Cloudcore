@@ -18,6 +18,7 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.net.URL;
+import java.sql.SQLOutput;
 import java.util.ResourceBundle;
 
 public class AuthController implements Initializable {
@@ -30,6 +31,7 @@ public class AuthController implements Initializable {
 
     @FXML
     VBox authorization;
+    Boolean loginOK = false;
 
     public void auth(ActionEvent actionEvent) {
         System.out.println(login.getText() + " " + password.getText());
@@ -42,32 +44,41 @@ public class AuthController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        Network.start();
-        Thread t = new Thread(() -> {
-            try {
-                AbstractMessage am = Network.readObject();
-                if (am instanceof AuthMessageOk) {
-                    Platform.runLater(() -> fxMainWindow());
+        try {
+            Network.start();
+            Thread t = new Thread(() -> {
+                while (!loginOK) {
+                    try {
+                        AbstractMessage am = Network.readObject();
+                        if (am instanceof AuthMessageOk) {
+                            loginOK = true;
+                            System.out.println("Успешная авторизация!");
+                            Platform.runLater(this::fxMainWindow);
+                        }
+                    } catch (ClassNotFoundException | IOException e) {
+                        e.printStackTrace();
+                    }
                 }
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-        t.start();
+            });
+            t.start();
+        } catch (Exception e) {
+            System.out.println("Нет подключения к серверу");
+            e.printStackTrace();
+        }
     }
-
-    @FXML
+        @FXML
     private void fxMainWindow() {
         try {
             Stage stage = (Stage) authorization.getScene().getWindow();
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/main.fxml"));
             Parent root = loader.load();
             stage.setTitle("Cloud Application");
-            stage.setScene(new Scene(root, 400, 600));
+            stage.setScene(new Scene(root, 800, 600));
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
+
 }
+

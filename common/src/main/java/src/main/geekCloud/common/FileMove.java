@@ -4,15 +4,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class FileMessage extends AbstractMessage {
+public class FileMove extends AbstractMessage{
     private String filename;
     private byte[] data;
     private String name;
-
     private boolean isDirectory;
     private boolean isEmpty;
 
-    public FileMessage(String fileName, boolean isDirectory, boolean isEmpty){
+    public FileMove(String fileName, boolean isDirectory, boolean isEmpty){
         this.name = fileName;
         this.isDirectory = isDirectory;
         this.isEmpty = isEmpty;
@@ -26,7 +25,7 @@ public class FileMessage extends AbstractMessage {
         return data;
     }
 
-    public FileMessage(Path path) throws IOException {
+    public FileMove(Path path) throws IOException {
         filename = path.getFileName().toString();
         data = Files.readAllBytes(path);
     }

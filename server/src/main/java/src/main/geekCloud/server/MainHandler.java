@@ -1,9 +1,6 @@
 package src.main.geekCloud.server;
 
-import src.main.geekCloud.common.FileDelete;
-import src.main.geekCloud.common.FileListUpdate;
-import src.main.geekCloud.common.FileMessage;
-import src.main.geekCloud.common.FileRequest;
+import src.main.geekCloud.common.*;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
@@ -13,8 +10,15 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainHandler extends ChannelInboundHandlerAdapter {
+    private ExecutorService executorService;
+
+    public MainHandler() {
+        this.executorService = Executors.newSingleThreadExecutor();
+    }
 
     private String userName;
 
@@ -30,8 +34,9 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
                 return;
             }
 
+            //TODO single thread executor and stack
             if (msg instanceof FileRequest) {
-                new Thread(() -> {
+                executorService.execute(() -> {
                     try {
                         FileRequest message = (FileRequest) msg;
 
@@ -43,7 +48,7 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                }).start();
+                });
             }
 
             if (msg instanceof FileMessage) {
@@ -55,6 +60,7 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
                     System.out.println("Получил");
                 }
             }
+
             if (msg instanceof FileDelete) {
                 FileDelete fd = (FileDelete) msg;
                 Files.delete(Paths.get("server_storage/" + userName + "/" + fd.getFilename()));
@@ -62,6 +68,35 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
                 ctx.writeAndFlush(flu);
                 System.out.println("Файл " + fd.getFilename() + " удален");
             }
+            if (msg instanceof FileRename) {
+                FileRename fd = (FileRename) msg;
+                Files.move(Paths.get("server_storage/" + userName + "/" + fd.getFileName()),
+                        Paths.get("server_storage/" + userName + "/" + fd.getFileName()).resolveSibling(fd.getNewFileName()));
+
+                FileListUpdate flu = new FileListUpdate(getFileServerList(userName));
+                ctx.writeAndFlush(flu);
+                System.out.println("Файл " + fd.getFileName() + " удален");
+            }
+            if (msg instanceof FileMove) {
+                FileMove message = (FileMove) msg;
+                new Thread(() -> {
+                    try {
+
+                        if (Files.exists(Paths.get("server_storage/" + userName + "/" + message.getFilename()))) {
+                            FileMessage fm = new FileMessage(Paths.get("server_storage/" + userName + "/" + message.getFilename()));
+                            ctx.writeAndFlush(fm);
+                            System.out.println("Отправил");
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }).start();
+                Files.delete(Paths.get("server_storage/" + userName + "/" + message.getFilename()));
+                FileListUpdate flu = new FileListUpdate(getFileServerList(userName));
+                ctx.writeAndFlush(flu);
+                System.out.println("Файл " + message.getFilename() + " удален");
+            }
+
             if (msg instanceof FileListUpdate) {
                 FileListUpdate flu = new FileListUpdate(getFileServerList(userName));
                 ctx.writeAndFlush(flu);

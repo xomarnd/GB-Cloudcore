@@ -63,8 +63,6 @@ public class AuthGatewayHandler extends ChannelInboundHandlerAdapter {
                     ctx.pipeline().addLast(new MainHandler(username));
                     conn.close();
                 }
-            } else {
-                ReferenceCountUtil.release(msg);
             }
         } else {
             ctx.fireChannelRead(msg);

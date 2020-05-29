@@ -11,37 +11,60 @@
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.geometry.Insets?>
-<VBox fx:id="rootNode" alignment="CENTER" prefHeight="500.0" prefWidth="400.0"
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.PasswordField?>
+<VBox fx:id="rootNode" alignment="CENTER" prefHeight="800.0" prefWidth="500.0"
       xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.172-ea"
       fx:controller="src.main.geekCloud.client.MainController">
 
         <AnchorPane>
             <MenuBar>
                 <Menu text="Файл" >
-                    <MenuItem text="Выйти из программы" onAction="#btnExitAction"/>
+                    <MenuItem mnemonicParsing="false" text="Просмотр" accelerator="F3" onAction="#viewBtnAction"/>
+                    <MenuItem mnemonicParsing="false" text="Пакет" accelerator="F4" onAction="#stackBtnAction"/>
+                    <MenuItem mnemonicParsing="false" text="Копирование" accelerator="F5" onAction="#copyBtnAction"/>
+                    <MenuItem mnemonicParsing="false" text="Перемещение" accelerator="F6" onAction="#moveBtnAction"/>
+                    <MenuItem mnemonicParsing="false" text="Каталог" accelerator="F7" onAction="#newFolderAction"/>
+                    <MenuItem mnemonicParsing="false" text="Удаление" accelerator="F8" onAction="#delBtnAction"/>
+                    <MenuItem mnemonicParsing="false" text="Переименовать" accelerator="F9" onAction="#renameBtnAction"/>
+                    <MenuItem mnemonicParsing="false" text="Выход" accelerator="ALT+F4" onAction="#btnExitAction"/>
+                </Menu>
+                <Menu text="Соеденение">
+                    <MenuItem mnemonicParsing="false" text="Отключится" onAction="#disConnect" />
                 </Menu>
             </MenuBar>
         </AnchorPane>
 
         <HBox VBox.vgrow="ALWAYS">
             <VBox HBox.hgrow="ALWAYS">
-                <ListView fx:id="filesList" VBox.vgrow="ALWAYS"/>
+                <HBox  HBox.hgrow="ALWAYS">
+                    <ComboBox fx:id="disksBox" onAction="#selectDiskAction"/>
+                    <TextField fx:id="pathField" editable="false" HBox.hgrow="ALWAYS"/>
+                    <Button text="Вверх" onAction="#localBtnPathUpAction"/>
+                </HBox>
+                <TableView fx:id="localFileTable" VBox.vgrow="ALWAYS"/>
             </VBox>
             <VBox HBox.hgrow="ALWAYS">
-                <ListView fx:id="filesListServer" VBox.vgrow="ALWAYS"/>
+                <HBox  HBox.hgrow="ALWAYS">
+                    <TextField editable="false" text="Cloud" HBox.hgrow="ALWAYS"/>
+                </HBox>
+                <ListView fx:id="filesListServer" onMouseClicked="#serverListClicked" VBox.vgrow="ALWAYS"/>
             </VBox>
         </HBox>
 
-    <HBox spacing="5">
-        <Button fx:id="viewBtnAction" maxWidth="Infinity" focusTraversable="false" text="F3 Просмотр" HBox.hgrow="ALWAYS" onAction="#viewBtnAction"/>
-        <Button fx:id="editBtnAction" maxWidth="Infinity" focusTraversable="false" text="F4 Правка" HBox.hgrow="ALWAYS" onAction="#editBtnAction"/>
-        <Button fx:id="copyBtnAction" maxWidth="Infinity" focusTraversable="false" text="F5 Копирование" HBox.hgrow="ALWAYS" onAction="#copyBtnAction"/>
-        <Button fx:id="moveBtnAction" maxWidth="Infinity" focusTraversable="false" text="F6 Перемещение" HBox.hgrow="ALWAYS" onAction="#moveBtnAction"/>
-        <Button fx:id="newFolderAction" maxWidth="Infinity" focusTraversable="false" text="F7 Каталог" HBox.hgrow="ALWAYS" onAction="#newFolderAction"/>
-        <Button fx:id="delBtnAction" maxWidth="Infinity" focusTraversable="false" text="F8 Удаление" HBox.hgrow="ALWAYS" onAction="#delBtnAction"/>
-        <Button fx:id="btnExitAction" maxWidth="Infinity" focusTraversable="false" text="ALT+F4 Выход" HBox.hgrow="ALWAYS" onAction="#btnExitAction"/>
-        <padding>
-            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
-        </padding>
-    </HBox>
+        <HBox spacing="5">
+            <Button maxWidth="Infinity" focusTraversable="false" text="F3 Просмотр" HBox.hgrow="ALWAYS" onAction="#viewBtnAction"/>
+            <Button maxWidth="Infinity" focusTraversable="false" text="F4 Пакет" HBox.hgrow="ALWAYS" onAction="#stackBtnAction"/>
+            <Button maxWidth="Infinity" focusTraversable="false" text="F5 Копирование" HBox.hgrow="ALWAYS" onAction="#copyBtnAction"/>
+            <Button maxWidth="Infinity" focusTraversable="false" text="F6 Перемещение" HBox.hgrow="ALWAYS" onAction="#moveBtnAction"/>
+            <Button maxWidth="Infinity" focusTraversable="false" text="F7 Каталог" HBox.hgrow="ALWAYS" onAction="#newFolderAction"/>
+            <Button maxWidth="Infinity" focusTraversable="false" text="F8 Удаление" HBox.hgrow="ALWAYS" onAction="#delBtnAction"/>
+            <Button maxWidth="Infinity" focusTraversable="false" text="F9 Переименовать" HBox.hgrow="ALWAYS" onAction="#renameBtnAction"/>
+            <Button maxWidth="Infinity" focusTraversable="false" text="ALT+F4 Выход" HBox.hgrow="ALWAYS" onAction="#btnExitAction"/>
+            <padding>
+                <Insets bottom="4.0" left="4.0" right="4.0" top="4.0"/>
+            </padding>
+        </HBox>
     </VBox>
