@@ -44,10 +44,10 @@ public class MainController implements Initializable {
     @FXML
     private Node rootNode;
 
-    private final Path path = Paths.get("client_storage");
-    private Path root;
-    private Path fileLocal = null;
-    private String fileServer = null;
+    private final Path defaultPath = Paths.get("client_storage"); //Директория пользователя по умолчанию
+    private Path root; //Текущая локальная директория
+    private Path fileLocal = null; //Ссылка на локальный файл
+    private String fileServer = null;  //Ссылка на удаленный файл
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -108,7 +108,7 @@ public class MainController implements Initializable {
                     }
                 });
 
-                updateList(path);
+                updateList(defaultPath);
                 while (true) {
                     AbstractMessage am = Network.readObject();
                     if (am instanceof FileMessage) {
@@ -134,15 +134,14 @@ public class MainController implements Initializable {
         t.setDaemon(true);
         t.start();
         setDisksBox();
-        goToPath(path);
+        goToPath(defaultPath);
         refreshFilesList();
     }
 
     public  void setDisksBox(){
         disksBox.getItems().clear();
-        disksBox.getItems().add(path.toString());
+        disksBox.getItems().add(defaultPath.toString());
         for (Path p : FileSystems.getDefault().getRootDirectories()) {
-            System.out.println(p);
             disksBox.getItems().add(p.toString());
         }
         disksBox.getSelectionModel().select(0);
@@ -342,7 +341,17 @@ public class MainController implements Initializable {
 
     public void localBtnPathUpAction(ActionEvent actionEvent) {
         Path pathTo = root.toAbsolutePath().getParent();
-        goToPath(pathTo);
+        if(pathTo.toString().contains(defaultPath.normalize().toAbsolutePath().toString())) {
+            goToPath(pathTo);
+        }else{
+            List<String> disk = disksBox.getItems();
+            for(String disks: disk){
+                if(disks.equals(pathTo.getRoot().toString())){
+                    disksBox.getSelectionModel().select(disk.indexOf(disks));
+                    goToPath(pathTo);
+                }
+            }
+        }
     }
 
     public void serverListClicked(MouseEvent mouseEvent) {

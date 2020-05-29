@@ -62,6 +62,7 @@ public class AuthController implements Initializable {
             });
             t.start();
         } catch (Exception e) {
+            System.out.println("Нет подключения к серверу");
             e.printStackTrace();
         }
     }

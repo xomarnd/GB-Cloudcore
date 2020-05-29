@@ -10,8 +10,15 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainHandler extends ChannelInboundHandlerAdapter {
+    private ExecutorService executorService;
+
+    public MainHandler() {
+        this.executorService = Executors.newSingleThreadExecutor();
+    }
 
     private String userName;
 
@@ -29,7 +36,7 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
 
             //TODO single thread executor and stack
             if (msg instanceof FileRequest) {
-                new Thread(() -> {
+                executorService.execute(() -> {
                     try {
                         FileRequest message = (FileRequest) msg;
 
@@ -41,7 +48,7 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                }).start();
+                });
             }
 
             if (msg instanceof FileMessage) {

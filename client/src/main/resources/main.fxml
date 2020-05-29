@@ -33,11 +33,9 @@
                 </Menu>
                 <Menu text="Соеденение">
                     <MenuItem mnemonicParsing="false" text="Отключится" onAction="#disConnect" />
-
                 </Menu>
             </MenuBar>
         </AnchorPane>
-
 
         <HBox VBox.vgrow="ALWAYS">
             <VBox HBox.hgrow="ALWAYS">
