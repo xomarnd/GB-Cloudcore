@@ -5,7 +5,6 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.input.*;
 import javafx.stage.FileChooser;
@@ -24,12 +23,9 @@ import java.nio.file.*;
 import java.time.format.DateTimeFormatter;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
-
-import static src.main.geekCloud.client.KeyBoard.writeKeyCode;
 
 public class MainController implements Initializable {
 
@@ -98,7 +94,7 @@ public class MainController implements Initializable {
                     @Override
                     public void handle(MouseEvent event) {
                         Path path = Paths.get(pathField.getText()).resolve(localFileTable.getSelectionModel().
-                                getSelectedItem().getFilenamefull());
+                                getSelectedItem().getFileNameFull());
                         if (event.getClickCount() == 2) {
                             if (Files.isDirectory(path)) {
                                 updateList(path);
@@ -111,17 +107,8 @@ public class MainController implements Initializable {
                         }
                     }
                 });
-                //Ожидаем нажатие клавиш
+
                 updateList(path);
-                rootNode.setOnKeyPressed(new EventHandler<KeyEvent>(){
-                    @Override
-                    public void handle(KeyEvent event) {
-                        KeyCode key = event.getCode();
-                        writeKeyCode(key);
-                    }
-
-                });
-
                 while (true) {
                     AbstractMessage am = Network.readObject();
                     if (am instanceof FileMessage) {
@@ -173,8 +160,7 @@ public class MainController implements Initializable {
 
     public void copyBtnAction(ActionEvent actionEvent) throws IOException {
         if(fileLocal == null && fileServer == null){
-            Alert alert = new Alert(Alert.AlertType.ERROR, "Ни один файл не был выбран", ButtonType.OK);
-            alert.showAndWait();
+            AlertController.smallAlert("Ни один файл не был выбран");
             return;
         }
         // Проверяем фокус на локальном хранилище
@@ -193,8 +179,7 @@ public class MainController implements Initializable {
 
     public void delBtnAction(ActionEvent actionEvent) {
         if(fileLocal == null && fileServer == null){
-            Alert alert = new Alert(Alert.AlertType.ERROR, "Ни один файл не был выбран", ButtonType.OK);
-            alert.showAndWait();
+            AlertController.smallAlert("Ни один файл не был выбран");
             return;
         }
         // Проверяем фокус на локальном хранилище
@@ -214,8 +199,7 @@ public class MainController implements Initializable {
 
     public void moveBtnAction(ActionEvent actionEvent) throws IOException {
         if(fileLocal == null && fileServer == null){
-            Alert alert = new Alert(Alert.AlertType.ERROR, "Ни один файл не был выбран", ButtonType.OK);
-            alert.showAndWait();
+            AlertController.smallAlert("Ни один файл не был выбран");
             return;
         }
         // Проверяем фокус на локальном хранилище
@@ -239,8 +223,7 @@ public class MainController implements Initializable {
 
     public void renameBtnAction(ActionEvent actionEvent) {
         if(fileLocal == null && fileServer == null){
-            Alert alert = new Alert(Alert.AlertType.ERROR, "Ни один файл не был выбран", ButtonType.OK);
-            alert.showAndWait();
+            AlertController.smallAlert("Ни один файл не был выбран");
             return;
         }
         // Проверяем фокус на локальном хранилище
@@ -252,8 +235,7 @@ public class MainController implements Initializable {
                     refreshFilesList();
                     System.out.println("Локальный файл переименован");
                 }else {
-                    Alert alert = new Alert(Alert.AlertType.ERROR, "Локальный файл НЕ переименован", ButtonType.OK);
-                    alert.showAndWait();
+                    AlertController.smallAlert("Локальный файл НЕ переименован");
                     System.out.println("Локальный файл НЕ переименован");
                 }
             } catch (IOException e) {
@@ -273,8 +255,7 @@ public class MainController implements Initializable {
 
     public void newFolderAction(ActionEvent actionEvent) {
         if(fileLocal == null && fileServer == null){
-            Alert alert = new Alert(Alert.AlertType.ERROR, "Выберите место создания папки", ButtonType.OK);
-            alert.showAndWait();
+            AlertController.smallAlert("Выберите место создания папки");
             return;
         }
         // Проверяем фокус на локальном хранилище
@@ -288,9 +269,7 @@ public class MainController implements Initializable {
                     System.out.println("Директория создана: "+ newFolderName);
                 }else {
                     System.out.println("Директория не создана");
-                    Alert alert = new Alert(Alert.AlertType.ERROR, "Имя новой директории не выбрано", ButtonType.OK);
-                    alert.showAndWait();
-
+                    AlertController.smallAlert("Имя новой директории не выбрано");
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -298,8 +277,7 @@ public class MainController implements Initializable {
         }
         // Проверяем фокус на сервере
         if(fileLocal == null) {
-            Alert alert = new Alert(Alert.AlertType.ERROR, "Выберите ЛОКАЛЬНОЕ место создания папки", ButtonType.OK);
-            alert.showAndWait();
+            AlertController.smallAlert("Выберите ЛОКАЛЬНОЕ место создания папки");
             System.out.println("Папка на сервере не создана");
         }
 
@@ -317,14 +295,14 @@ public class MainController implements Initializable {
 
         } catch (IOException e) {
             e.printStackTrace();
+            AlertController.smallAlert("Не удалось переслать файлы");
             System.out.println("Не удалось переслать файлы");
         }
     }
 
     public void viewBtnAction(ActionEvent actionEvent) {
         if(fileLocal == null && fileServer == null){
-            Alert alert = new Alert(Alert.AlertType.ERROR, "Ни один файл не был выбран", ButtonType.OK);
-            alert.showAndWait();
+            AlertController.smallAlert("Ни один файл не был выбран");
             return;
         }
         // Проверяем фокус на локальном хранилище
@@ -334,35 +312,29 @@ public class MainController implements Initializable {
         }
         // Проверяем фокус на сервере
         if(fileLocal == null) {
-            Alert alert = new Alert(Alert.AlertType.ERROR, "Загрузите файл в локальное хранилище", ButtonType.OK);
-            alert.showAndWait();
-            return;
+            AlertController.smallAlert("Для просмотра загрузите файл в локальное хранилище");
         }
     }
 
-    public boolean editFile(File file) {
+    public void editFile(File file) {
         if (!Desktop.isDesktopSupported()) {
-            return false;
+            return;
         }
 
         Desktop desktop = Desktop.getDesktop();
         if (!desktop.isSupported(Desktop.Action.EDIT)) {
-            return false;
+            return;
         }
 
         try {
             desktop.edit(file);
         } catch (IOException e) {
-            // Log an error
-            return false;
+            AlertController.smallAlert("Не удалось открыть файл");
+
         }
 
-        return true;
     }
 
-
-
-    //TODO фикс, возврат домой после ухода с директории
     public void selectDiskAction(ActionEvent actionEvent) {
         ComboBox<String> element = (ComboBox<String>) actionEvent.getSource();
         updateList(Paths.get(element.getSelectionModel().getSelectedItem()));

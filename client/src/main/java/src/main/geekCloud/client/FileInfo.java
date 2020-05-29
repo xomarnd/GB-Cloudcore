@@ -8,14 +8,13 @@ import java.time.ZoneOffset;
 import org.apache.commons.io.FilenameUtils;
 
 public class FileInfo {
-    public static final String UP_TOKEN = "[..]";
 
-    public String getFilenamefull() {
-        return filenamefull;
+    public String getFileNameFull() {
+        return fileNameFull;
     }
 
-    public void setFilenamefull(String filenamefull) {
-        this.filenamefull = filenamefull;
+    public void setFileNameFull(String fileNameFull) {
+        this.fileNameFull = fileNameFull;
     }
 
 
@@ -35,7 +34,7 @@ public class FileInfo {
     private FileType type;
     private LocalDateTime lastModified;
     private String extension;
-    private String filenamefull;
+    private String fileNameFull;
 
 
     public String getFileName() {
@@ -66,7 +65,7 @@ public class FileInfo {
 
     public FileInfo(Path path) {
         try {
-            this.filenamefull = path.getFileName().toString();
+            this.fileNameFull = path.getFileName().toString();
             this.filename = getFileNameRemoveExtension(path);
             this.extension = getExtensionNotFileName(path);
 

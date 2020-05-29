@@ -60,4 +60,9 @@ public class AlertController {
 
         return null;
     }
+
+    public static void smallAlert(String textAlert){
+        Alert alert = new Alert(Alert.AlertType.ERROR, textAlert, ButtonType.OK);
+        alert.showAndWait();
+    }
 }
