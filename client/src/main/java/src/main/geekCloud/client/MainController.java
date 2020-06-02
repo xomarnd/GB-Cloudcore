@@ -340,15 +340,15 @@ public class MainController implements Initializable {
     }
 
     public void localBtnPathUpAction(ActionEvent actionEvent) {
-        Path pathTo = root.toAbsolutePath().getParent();
+        Path pathTo = Paths.get(pathField.getText()).getParent();
         if(pathTo.toString().contains(defaultPath.normalize().toAbsolutePath().toString())) {
-            goToPath(pathTo);
+            updateList(pathTo);
         }else{
             List<String> disk = disksBox.getItems();
             for(String disks: disk){
                 if(disks.equals(pathTo.getRoot().toString())){
                     disksBox.getSelectionModel().select(disk.indexOf(disks));
-                    goToPath(pathTo);
+                    updateList(pathTo);
                 }
             }
         }

@@ -34,7 +34,6 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
                 return;
             }
 
-            //TODO single thread executor and stack
             if (msg instanceof FileRequest) {
                 executorService.execute(() -> {
                     try {
