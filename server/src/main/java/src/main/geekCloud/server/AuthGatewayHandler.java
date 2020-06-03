@@ -5,7 +5,6 @@ import src.main.geekCloud.common.AuthMessageOk;
 import src.main.geekCloud.common.RegistryMessage;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import org.sqlite.JDBC;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -18,16 +17,10 @@ public class AuthGatewayHandler extends ChannelInboundHandlerAdapter {
 
     private boolean authorized;
 
-    private Map<String, User> users = new HashMap<>();
-    private final String DB_PATH = "users.db";
-    private Connection conn;
+    static Map<String, User> users = new HashMap<>();
 
     public AuthGatewayHandler() {
-        try {
-            this.conn = DriverManager.getConnection(JDBC.PREFIX + DB_PATH);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        DBController.connectToDB();
     }
 
     @Override
@@ -42,10 +35,10 @@ public class AuthGatewayHandler extends ChannelInboundHandlerAdapter {
                     String username = fd.getLogin();
                     authorized = true;
                     AuthMessageOk amo = new AuthMessageOk();
-                    ctx.writeAndFlush(amo).await();
+                    ctx.writeAndFlush(amo);
                     ctx.pipeline().addLast(new MainHandler(username));
                     System.out.println(fd.getLogin() + "/" + fd.getPassword());
-                    conn.close();
+                    DBController.closeConnectDB();
                 }
             } else if (msg instanceof RegistryMessage) {
                 RegistryMessage rm = (RegistryMessage) msg;
@@ -58,9 +51,9 @@ public class AuthGatewayHandler extends ChannelInboundHandlerAdapter {
                     authorized = true;
                     Files.createDirectory(Paths.get("server_storage/" + username));
                     AuthMessageOk amo = new AuthMessageOk();
-                    ctx.writeAndFlush(amo).await();
+                    ctx.writeAndFlush(amo);
                     ctx.pipeline().addLast(new MainHandler(username));
-                    conn.close();
+                    DBController.closeConnectDB();
                 }
             }
         } else {
@@ -69,7 +62,7 @@ public class AuthGatewayHandler extends ChannelInboundHandlerAdapter {
     }
 
     private String authByLoginAndPassword(String login, String password) {
-        try (PreparedStatement pstmt = conn.prepareStatement("SELECT login, password FROM users;")) {
+        try (PreparedStatement pstmt = DBController.getUsers()) {
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
                 String log = rs.getString(1);
@@ -88,8 +81,7 @@ public class AuthGatewayHandler extends ChannelInboundHandlerAdapter {
     }
 
     private void createOrActivateUser(String login, String password) {
-        try (PreparedStatement pstmt = conn.prepareStatement("INSERT INTO users(login, password) VALUES (?,?);")) {
-
+        try (PreparedStatement pstmt = DBController.createNewUser()) {
             pstmt.setString(1, login);
             pstmt.setString(2, password);
             pstmt.execute();
@@ -99,7 +91,7 @@ public class AuthGatewayHandler extends ChannelInboundHandlerAdapter {
     }
 
     private boolean loginExist(String login) {
-        try (PreparedStatement pstmt = conn.prepareStatement("SELECT login, password FROM users;")) {
+        try (PreparedStatement pstmt = DBController.getUsers()) {
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
                 String log = rs.getString(1);
