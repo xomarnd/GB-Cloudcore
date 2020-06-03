@@ -5,8 +5,6 @@ import io.netty.handler.codec.serialization.ObjectDecoderInputStream;
 import io.netty.handler.codec.serialization.ObjectEncoderOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 
 public class Network {
@@ -27,7 +25,7 @@ public class Network {
         } catch (IOException e) {
             e.printStackTrace();
             stop();
-            AlertController.alertNetworkController();
+            if(AlertController.alertNetworkController()) start();
         }
     }
 

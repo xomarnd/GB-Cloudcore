@@ -379,7 +379,10 @@ public class MainController implements Initializable {
     }
 
     public void btnExitAction(ActionEvent actionEvent) {
-        AlertController.alertExitAction();
+        if(AlertController.alertExitAction()) {
+            Network.stop();
+            System.exit(1);
+        }
     }
 
     public void disConnect(ActionEvent actionEvent) {
