@@ -46,7 +46,7 @@ public class AuthGatewayHandler extends ChannelInboundHandlerAdapter {
                     System.out.println("User with nick" + rm.getLogin() + "already exist");
                     return;
                 } else {
-                    createOrActivateUser(rm.getLogin(), rm.getPassword());
+                    DBController.createOrActivateUser(rm.getLogin(), rm.getPassword());
                     String username = rm.getLogin();
                     authorized = true;
                     Files.createDirectory(Paths.get("server_storage/" + username));
@@ -62,8 +62,7 @@ public class AuthGatewayHandler extends ChannelInboundHandlerAdapter {
     }
 
     private String authByLoginAndPassword(String login, String password) {
-        try (PreparedStatement pstmt = DBController.getUsers()) {
-            ResultSet rs = pstmt.executeQuery();
+        try (ResultSet rs = DBController.getUsers()) {
             while (rs.next()) {
                 String log = rs.getString(1);
                 String pass = rs.getString(2);
@@ -80,19 +79,9 @@ public class AuthGatewayHandler extends ChannelInboundHandlerAdapter {
         return null;
     }
 
-    private void createOrActivateUser(String login, String password) {
-        try (PreparedStatement pstmt = DBController.createNewUser()) {
-            pstmt.setString(1, login);
-            pstmt.setString(2, password);
-            pstmt.execute();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
 
     private boolean loginExist(String login) {
-        try (PreparedStatement pstmt = DBController.getUsers()) {
-            ResultSet rs = pstmt.executeQuery();
+        try (ResultSet rs = DBController.getUsers()) {
             while (rs.next()) {
                 String log = rs.getString(1);
                 String pass = rs.getString(2);
