@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class AlertController {
 
-    public static void alertNetworkController(){
+    public static boolean alertNetworkController(){
         Alert alertReconnect = new Alert(Alert.AlertType.CONFIRMATION);
         alertReconnect.setTitle("CloudApp");
         alertReconnect.setHeaderText("Нет соеденения с сервером.");
@@ -18,24 +18,24 @@ public class AlertController {
 
         alertReconnect.getButtonTypes().addAll(ok, cancel);
         Optional<ButtonType> reconnect = alertReconnect.showAndWait();
-
         if(reconnect.get() == ok) {
-            Network.start();
+            return true;
         }else {
             reconnect.get();
         }
+        return false;
     }
 
-    public static void alertExitAction() {
+    public static boolean alertExitAction() {
         Alert alertExit = new Alert(Alert.AlertType.CONFIRMATION);
         alertExit.setTitle("CloudApp");
         alertExit.setHeaderText("Закрытие программы");
         alertExit.setContentText("Вы уверины что хотите выйти из программы?");
         Optional<ButtonType> exit = alertExit.showAndWait();
         if(exit.get() == ButtonType.OK){
-            Network.stop();
-            System.exit(1);
+            return true;
         }
+        return false;
     }
 
     public static AtomicReference<String> inputNameDialog(){
@@ -65,4 +65,6 @@ public class AlertController {
     public static void inputConnectSettingDialog(){
 
     }
+
+
 }

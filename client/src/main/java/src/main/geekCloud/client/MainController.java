@@ -1,12 +1,12 @@
 package src.main.geekCloud.client;
 
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.input.*;
+import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import src.main.geekCloud.common.*;
 import javafx.application.Platform;
@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.*;
-import java.time.format.DateTimeFormatter;
 
 import java.util.List;
 import java.util.ResourceBundle;
@@ -51,45 +50,10 @@ public class MainController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+
         Thread t = new Thread(() -> {
+            GuiHelper.prepareTableFileAbout(localFileTable);
             try {
-                TableColumn<FileInfo, String> filenameColumn = new TableColumn<>("Имя");
-                filenameColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getFileName()));
-                filenameColumn.setPrefWidth(200);
-
-                TableColumn<FileInfo, String> fileExtensionColumn = new TableColumn<>("Тип");
-                fileExtensionColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getExtension()));
-                fileExtensionColumn.setPrefWidth(80);
-
-                TableColumn<FileInfo, Long> fileSizeColumn = new TableColumn<>("Размер");
-                fileSizeColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(param.getValue().getSize()));
-                fileSizeColumn.setCellFactory(column -> {
-                    return new TableCell<FileInfo, Long>() {
-                        @Override
-                        protected void updateItem(Long item, boolean empty) {
-                            super.updateItem(item, empty);
-                            if (item == null || empty) {
-                                setText(null);
-                                setStyle("");
-                            } else {
-                                String text = FileInfo.getStringSize(item);
-                                if (item == -1L) {
-                                    text = "";
-                                }
-                                setText(text);
-                            }
-                        }
-                    };
-                });
-                fileSizeColumn.setPrefWidth(120);
-
-                DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-                TableColumn<FileInfo, String> fileDateColumn = new TableColumn<>("Дата изменения");
-                fileDateColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getLastModified().format(dtf)));
-                fileDateColumn.setPrefWidth(120);
-
-                localFileTable.getColumns().addAll(filenameColumn, fileExtensionColumn, fileSizeColumn, fileDateColumn);
-                localFileTable.getSortOrder().add(fileExtensionColumn);
                 localFileTable.setOnMouseClicked(new EventHandler<MouseEvent>() {
                     @Override
                     public void handle(MouseEvent event) {
@@ -157,6 +121,7 @@ public class MainController implements Initializable {
         return selectFile;
     }
 
+    //Копирование файла
     public void copyBtnAction(ActionEvent actionEvent) throws IOException {
         if(fileLocal == null && fileServer == null){
             AlertController.smallAlert("Ни один файл не был выбран");
@@ -176,6 +141,7 @@ public class MainController implements Initializable {
         }
     }
 
+    //Удаление файла
     public void delBtnAction(ActionEvent actionEvent) {
         if(fileLocal == null && fileServer == null){
             AlertController.smallAlert("Ни один файл не был выбран");
@@ -185,6 +151,7 @@ public class MainController implements Initializable {
         if(fileServer == null){
             try {
                 Files.delete(Paths.get(String.valueOf(fileLocal)));
+                fileLocal = null;
                 refreshFilesList();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -193,9 +160,11 @@ public class MainController implements Initializable {
         // Проверяем фокус на сервере
         if(fileLocal == null) {
             Network.sendMsg(new FileDelete(fileServer));
+            fileServer = null;
         }
     }
 
+    //Перемещение файла
     public void moveBtnAction(ActionEvent actionEvent) throws IOException {
         if(fileLocal == null && fileServer == null){
             AlertController.smallAlert("Ни один файл не был выбран");
@@ -206,6 +175,7 @@ public class MainController implements Initializable {
             try {
                 Network.sendMsg(new FileMessage(Paths.get(String.valueOf(fileLocal))));
                 Files.delete(Paths.get(String.valueOf(fileLocal)));
+                fileLocal = null;
                 refreshFilesList();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -214,12 +184,13 @@ public class MainController implements Initializable {
         }
         // Проверяем фокус на сервере
         if(fileLocal == null) {
-            Network.sendMsg(new FileRequest(fileServer));
-            Network.sendMsg(new FileDelete(fileServer));
+            Network.sendMsg(new FileRequest(fileServer, true));
+            fileServer = null;
             System.out.println("Получил файл и удалил на облаке.");
             }
         }
 
+    //Переиминование файла
     public void renameBtnAction(ActionEvent actionEvent) {
         if(fileLocal == null && fileServer == null){
             AlertController.smallAlert("Ни один файл не был выбран");
@@ -230,7 +201,7 @@ public class MainController implements Initializable {
             try {
                 AtomicReference<String> newName = AlertController.inputNameDialog();
                 if(!( newName == null )){
-                    Files.move(Paths.get(String.valueOf(fileLocal)), Paths.get(String.valueOf(fileLocal)).resolveSibling(newName.get()));
+                    fileLocal = Files.move(Paths.get(String.valueOf(fileLocal)), Paths.get(String.valueOf(fileLocal)).resolveSibling(newName.get()));
                     refreshFilesList();
                     System.out.println("Локальный файл переименован");
                 }else {
@@ -246,12 +217,14 @@ public class MainController implements Initializable {
             AtomicReference<String> newName = AlertController.inputNameDialog();
             if(!( newName == null )) {
                 Network.sendMsg(new FileRename(fileServer, newName.toString()));
+                fileServer = newName.toString();
                 System.out.println("Файл на сервере переименован");
             }
         }
 
     }
 
+    //Создание новой директории
     public void newFolderAction(ActionEvent actionEvent) {
         if(fileLocal == null && fileServer == null){
             AlertController.smallAlert("Выберите место создания папки");
@@ -282,23 +255,27 @@ public class MainController implements Initializable {
 
     }
 
+    //Отправка пакета файлов
     public void stackBtnAction(ActionEvent actionEvent) throws IOException {
-        try{
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle("Open File");
-            List<File> files = fileChooser.showOpenMultipleDialog(rootNode.getScene().getWindow());
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Open File");
+        List<File> files = fileChooser.showOpenMultipleDialog(rootNode.getScene().getWindow());
+        Thread tSend = new Thread(() -> {
             for(File file: files){
-                Network.sendMsg(new FileMessage(Paths.get(String.valueOf(file))));
-                System.out.println("Пересылаем файл: " + file);
+                    try {
+                        Network.sendMsg(new FileMessage(Paths.get(String.valueOf(file))));
+                        System.out.println("Пересылаем файл: " + file);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        AlertController.smallAlert("Не удалось переслать файлы");
+                        System.out.println("Не удалось переслать файлы");
+                    }
             }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            AlertController.smallAlert("Не удалось переслать файлы");
-            System.out.println("Не удалось переслать файлы");
-        }
+        });
+        tSend.start();
     }
 
+    //Просмотр или редактирование файла
     public void viewBtnAction(ActionEvent actionEvent) {
         if(fileLocal == null && fileServer == null){
             AlertController.smallAlert("Ни один файл не был выбран");
@@ -315,6 +292,7 @@ public class MainController implements Initializable {
         }
     }
 
+    //Открытие файла
     public void editFile(File file) {
         if (!Desktop.isDesktopSupported()) {
             return;
@@ -334,21 +312,23 @@ public class MainController implements Initializable {
 
     }
 
+    //Модуль выборы диска
     public void selectDiskAction(ActionEvent actionEvent) {
         ComboBox<String> element = (ComboBox<String>) actionEvent.getSource();
         updateList(Paths.get(element.getSelectionModel().getSelectedItem()));
     }
 
+    //Переход на директорию выше
     public void localBtnPathUpAction(ActionEvent actionEvent) {
-        Path pathTo = root.toAbsolutePath().getParent();
+        Path pathTo = Paths.get(pathField.getText()).getParent();
         if(pathTo.toString().contains(defaultPath.normalize().toAbsolutePath().toString())) {
-            goToPath(pathTo);
+            updateList(pathTo);
         }else{
             List<String> disk = disksBox.getItems();
             for(String disks: disk){
                 if(disks.equals(pathTo.getRoot().toString())){
                     disksBox.getSelectionModel().select(disk.indexOf(disks));
-                    goToPath(pathTo);
+                    updateList(pathTo);
                 }
             }
         }
@@ -379,7 +359,10 @@ public class MainController implements Initializable {
     }
 
     public void btnExitAction(ActionEvent actionEvent) {
-        AlertController.alertExitAction();
+        if(AlertController.alertExitAction()) {
+            Network.stop();
+            System.exit(1);
+        }
     }
 
     public void disConnect(ActionEvent actionEvent) {
