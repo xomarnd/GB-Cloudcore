@@ -1,7 +1,5 @@
 package src.main.geekCloud.client;
 
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -20,7 +18,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.*;
-import java.time.format.DateTimeFormatter;
 
 import java.util.List;
 import java.util.ResourceBundle;
@@ -52,44 +49,8 @@ public class MainController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         Thread t = new Thread(() -> {
+            GuiHelper.prepareTableFileAbout(localFileTable);
             try {
-                TableColumn<FileInfo, String> filenameColumn = new TableColumn<>("Имя");
-                filenameColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getFileName()));
-                filenameColumn.setPrefWidth(200);
-
-                TableColumn<FileInfo, String> fileExtensionColumn = new TableColumn<>("Тип");
-                fileExtensionColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getExtension()));
-                fileExtensionColumn.setPrefWidth(80);
-
-                TableColumn<FileInfo, Long> fileSizeColumn = new TableColumn<>("Размер");
-                fileSizeColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(param.getValue().getSize()));
-                fileSizeColumn.setCellFactory(column -> {
-                    return new TableCell<FileInfo, Long>() {
-                        @Override
-                        protected void updateItem(Long item, boolean empty) {
-                            super.updateItem(item, empty);
-                            if (item == null || empty) {
-                                setText(null);
-                                setStyle("");
-                            } else {
-                                String text = FileInfo.getStringSize(item);
-                                if (item == -1L) {
-                                    text = "";
-                                }
-                                setText(text);
-                            }
-                        }
-                    };
-                });
-                fileSizeColumn.setPrefWidth(120);
-
-                DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-                TableColumn<FileInfo, String> fileDateColumn = new TableColumn<>("Дата изменения");
-                fileDateColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getLastModified().format(dtf)));
-                fileDateColumn.setPrefWidth(120);
-
-                localFileTable.getColumns().addAll(filenameColumn, fileExtensionColumn, fileSizeColumn, fileDateColumn);
-                localFileTable.getSortOrder().add(fileExtensionColumn);
                 localFileTable.setOnMouseClicked(new EventHandler<MouseEvent>() {
                     @Override
                     public void handle(MouseEvent event) {
