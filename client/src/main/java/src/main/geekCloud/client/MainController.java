@@ -118,6 +118,7 @@ public class MainController implements Initializable {
         return selectFile;
     }
 
+    //Копирование файла
     public void copyBtnAction(ActionEvent actionEvent) throws IOException {
         if(fileLocal == null && fileServer == null){
             AlertController.smallAlert("Ни один файл не был выбран");
@@ -137,6 +138,7 @@ public class MainController implements Initializable {
         }
     }
 
+    //Удаление файла
     public void delBtnAction(ActionEvent actionEvent) {
         if(fileLocal == null && fileServer == null){
             AlertController.smallAlert("Ни один файл не был выбран");
@@ -146,6 +148,7 @@ public class MainController implements Initializable {
         if(fileServer == null){
             try {
                 Files.delete(Paths.get(String.valueOf(fileLocal)));
+                fileLocal = null;
                 refreshFilesList();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -154,9 +157,11 @@ public class MainController implements Initializable {
         // Проверяем фокус на сервере
         if(fileLocal == null) {
             Network.sendMsg(new FileDelete(fileServer));
+            fileServer = null;
         }
     }
 
+    //Перемещение файла
     public void moveBtnAction(ActionEvent actionEvent) throws IOException {
         if(fileLocal == null && fileServer == null){
             AlertController.smallAlert("Ни один файл не был выбран");
@@ -167,6 +172,7 @@ public class MainController implements Initializable {
             try {
                 Network.sendMsg(new FileMessage(Paths.get(String.valueOf(fileLocal))));
                 Files.delete(Paths.get(String.valueOf(fileLocal)));
+                fileLocal = null;
                 refreshFilesList();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -175,12 +181,13 @@ public class MainController implements Initializable {
         }
         // Проверяем фокус на сервере
         if(fileLocal == null) {
-            Network.sendMsg(new FileRequest(fileServer));
-            Network.sendMsg(new FileDelete(fileServer));
+            Network.sendMsg(new FileRequest(fileServer, true));
+            fileServer = null;
             System.out.println("Получил файл и удалил на облаке.");
             }
         }
 
+    //Переиминование файла
     public void renameBtnAction(ActionEvent actionEvent) {
         if(fileLocal == null && fileServer == null){
             AlertController.smallAlert("Ни один файл не был выбран");
@@ -191,7 +198,7 @@ public class MainController implements Initializable {
             try {
                 AtomicReference<String> newName = AlertController.inputNameDialog();
                 if(!( newName == null )){
-                    Files.move(Paths.get(String.valueOf(fileLocal)), Paths.get(String.valueOf(fileLocal)).resolveSibling(newName.get()));
+                    fileLocal = Files.move(Paths.get(String.valueOf(fileLocal)), Paths.get(String.valueOf(fileLocal)).resolveSibling(newName.get()));
                     refreshFilesList();
                     System.out.println("Локальный файл переименован");
                 }else {
@@ -207,12 +214,14 @@ public class MainController implements Initializable {
             AtomicReference<String> newName = AlertController.inputNameDialog();
             if(!( newName == null )) {
                 Network.sendMsg(new FileRename(fileServer, newName.toString()));
+                fileServer = newName.toString();
                 System.out.println("Файл на сервере переименован");
             }
         }
 
     }
 
+    //Создание новой директории
     public void newFolderAction(ActionEvent actionEvent) {
         if(fileLocal == null && fileServer == null){
             AlertController.smallAlert("Выберите место создания папки");
@@ -243,6 +252,7 @@ public class MainController implements Initializable {
 
     }
 
+    //Отправка пакета файлов
     public void stackBtnAction(ActionEvent actionEvent) throws IOException {
         try{
             FileChooser fileChooser = new FileChooser();
@@ -260,6 +270,7 @@ public class MainController implements Initializable {
         }
     }
 
+    //Просмотр или редактирование файла
     public void viewBtnAction(ActionEvent actionEvent) {
         if(fileLocal == null && fileServer == null){
             AlertController.smallAlert("Ни один файл не был выбран");
@@ -276,6 +287,7 @@ public class MainController implements Initializable {
         }
     }
 
+    //Открытие файла
     public void editFile(File file) {
         if (!Desktop.isDesktopSupported()) {
             return;
@@ -295,11 +307,13 @@ public class MainController implements Initializable {
 
     }
 
+    //Модуль выборы диска
     public void selectDiskAction(ActionEvent actionEvent) {
         ComboBox<String> element = (ComboBox<String>) actionEvent.getSource();
         updateList(Paths.get(element.getSelectionModel().getSelectedItem()));
     }
 
+    //Переход на директорию выше
     public void localBtnPathUpAction(ActionEvent actionEvent) {
         Path pathTo = Paths.get(pathField.getText()).getParent();
         if(pathTo.toString().contains(defaultPath.normalize().toAbsolutePath().toString())) {

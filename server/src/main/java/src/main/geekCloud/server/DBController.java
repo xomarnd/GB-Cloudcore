@@ -21,8 +21,7 @@ public class DBController {
 
     public static ResultSet getUsers() throws SQLException {
         PreparedStatement pstmt = conn.prepareStatement("SELECT login, password FROM users;");
-        ResultSet rs = pstmt.executeQuery();
-        return rs;
+        return pstmt.executeQuery();
     }
 
     static void createOrActivateUser(String login, String password) {

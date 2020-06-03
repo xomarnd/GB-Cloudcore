@@ -10,15 +10,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class MainHandler extends ChannelInboundHandlerAdapter {
-    private ExecutorService executorService;
-
-    public MainHandler() {
-        this.executorService = Executors.newSingleThreadExecutor();
-    }
 
     private String userName;
 
@@ -28,28 +21,26 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-
         try {
             if (msg == null) {
                 return;
             }
-
+            //Отправка файла
             if (msg instanceof FileRequest) {
-                executorService.execute(() -> {
-                    try {
-                        FileRequest message = (FileRequest) msg;
+                try {
+                    FileRequest message = (FileRequest) msg;
 
-                        if (Files.exists(Paths.get("server_storage/" + userName + "/" + message.getFilename()))) {
-                            FileMessage fm = new FileMessage(Paths.get("server_storage/" + userName + "/" + message.getFilename()));
-                            ctx.writeAndFlush(fm);
-                            System.out.println("Отправил");
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                    if (Files.exists(Paths.get("server_storage/" + userName + "/" + message.getFilename()))) {
+                        FileMessage fm = new FileMessage(Paths.get("server_storage/" + userName + "/" + message.getFilename()));
+                        ctx.writeAndFlush(fm);
+                        System.out.println("Отправил");
                     }
-                });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
+            //Получение файла
             if (msg instanceof FileMessage) {
                 FileMessage fm = (FileMessage) msg;
                 if (!Files.exists(Paths.get("server_storage" + userName + "/" + fm.getFilename()))) {
@@ -60,6 +51,7 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
                 }
             }
 
+            //Удаление файла
             if (msg instanceof FileDelete) {
                 FileDelete fd = (FileDelete) msg;
                 Files.delete(Paths.get("server_storage/" + userName + "/" + fd.getFilename()));
@@ -67,6 +59,8 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
                 ctx.writeAndFlush(flu);
                 System.out.println("Файл " + fd.getFilename() + " удален");
             }
+
+            //Переименование файла
             if (msg instanceof FileRename) {
                 FileRename fd = (FileRename) msg;
                 Files.move(Paths.get("server_storage/" + userName + "/" + fd.getFileName()),
@@ -76,26 +70,29 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
                 ctx.writeAndFlush(flu);
                 System.out.println("Файл " + fd.getFileName() + " удален");
             }
-            if (msg instanceof FileMove) {
-                FileMove message = (FileMove) msg;
+
+            //Перемещение файла
+            if (msg instanceof FileRequest) {
+                FileRequest message = (FileRequest) msg;
+                if(message.getMove()) System.out.println("work!");
                 new Thread(() -> {
                     try {
-
                         if (Files.exists(Paths.get("server_storage/" + userName + "/" + message.getFilename()))) {
                             FileMessage fm = new FileMessage(Paths.get("server_storage/" + userName + "/" + message.getFilename()));
                             ctx.writeAndFlush(fm);
                             System.out.println("Отправил");
                         }
+                        Files.delete(Paths.get("server_storage/" + userName + "/" + message.getFilename()));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }).start();
-                Files.delete(Paths.get("server_storage/" + userName + "/" + message.getFilename()));
                 FileListUpdate flu = new FileListUpdate(getFileServerList(userName));
                 ctx.writeAndFlush(flu);
                 System.out.println("Файл " + message.getFilename() + " удален");
             }
 
+            //Формирование и отсылка списка файлов клиента
             if (msg instanceof FileListUpdate) {
                 FileListUpdate flu = new FileListUpdate(getFileServerList(userName));
                 ctx.writeAndFlush(flu);
