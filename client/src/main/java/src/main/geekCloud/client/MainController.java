@@ -3,8 +3,10 @@ package src.main.geekCloud.client;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.input.*;
+import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import src.main.geekCloud.common.*;
 import javafx.application.Platform;
@@ -48,6 +50,7 @@ public class MainController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+
         Thread t = new Thread(() -> {
             GuiHelper.prepareTableFileAbout(localFileTable);
             try {
@@ -254,20 +257,22 @@ public class MainController implements Initializable {
 
     //Отправка пакета файлов
     public void stackBtnAction(ActionEvent actionEvent) throws IOException {
-        try{
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle("Open File");
-            List<File> files = fileChooser.showOpenMultipleDialog(rootNode.getScene().getWindow());
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Open File");
+        List<File> files = fileChooser.showOpenMultipleDialog(rootNode.getScene().getWindow());
+        Thread tSend = new Thread(() -> {
             for(File file: files){
-                Network.sendMsg(new FileMessage(Paths.get(String.valueOf(file))));
-                System.out.println("Пересылаем файл: " + file);
+                    try {
+                        Network.sendMsg(new FileMessage(Paths.get(String.valueOf(file))));
+                        System.out.println("Пересылаем файл: " + file);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        AlertController.smallAlert("Не удалось переслать файлы");
+                        System.out.println("Не удалось переслать файлы");
+                    }
             }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            AlertController.smallAlert("Не удалось переслать файлы");
-            System.out.println("Не удалось переслать файлы");
-        }
+        });
+        tSend.start();
     }
 
     //Просмотр или редактирование файла

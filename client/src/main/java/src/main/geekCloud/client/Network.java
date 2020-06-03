@@ -62,10 +62,4 @@ public class Network {
         Object obj = in.readObject();
         return (AbstractMessage) obj;
     }
-
-    public void setClientParam(String host, int port) {
-        HOST = host;
-        PORT = port;
-    }
-
 }
